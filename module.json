@@ -1,0 +1,9 @@
+{
+    "disableAutoUpdate": false,
+    "name": "DiscordV2",
+    "description": "Discord Tera chat relay",
+    "author": "PsykoDev",
+    "servers": ["https://raw.githubusercontent.com/PsykoDev/DiscordV2/master/"],
+    "supportUrl": "https://github.com/PsykoDev/DiscordV2/issues",
+    "version": "103.2"
+}
