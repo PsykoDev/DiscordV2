@@ -41,8 +41,11 @@ module.exports = function DiscordChat(mod) {
 
   bot.on("message", async (message) => {
     if (message.channel.id === config.channel) {
-      discordAuthor = message.member.nickname
       //discordAuthor = message.member.nickname;
+      message.guild.members.fetch(message.author).then((member) => {
+        discordAuthor = member.nickname
+      })
+
       if (message.content.match(`(Guild|@|!up|!stat|@@|i'm up|https://|http://|<@|<:|:)`)) {
         //await message.channel.send("Wrong message");
         if (config.back) {
@@ -54,10 +57,9 @@ module.exports = function DiscordChat(mod) {
         await message.channel.messages
           .fetch({ limit: 5 })
           .then((messages) => {
-            // add prefix or not
             const lastMessage = messages.first()
             if (message.content.startsWith(prefix)) {
-              Say.Global("[" + discordAuthor + "]: " + lastMessage.content.stripglo())
+              Say.GlobalBLUE(`[${discordAuthor}]: ${lastMessage.content.stripglo()}`)
             } else {
               //Say.Guild("[" + discordAuthor + "]: " + lastMessage.content /*.stripHTML()*/);
               Say.guildBLUE(`[${discordAuthor}]: ${lastMessage.content}`)
@@ -76,11 +78,19 @@ module.exports = function DiscordChat(mod) {
   //Cyan #42f4f4
   //Gold #ffcc00
   //Rouge ~ #f93ece
-
-  let myGameName
-  mod.hook("S_LOGIN", 14, (event) => {
-    myGameName = event.name
+  mod.hook("C_CHAT", 1, async (event) => {
+    let newmessage = event.message
+      .replaceAll(/<ChatLinkAction[^>]*>&lt;([^<]*)&gt;<\/ChatLinkAction[^>]*>/g, " **$1 ** ")
+      .replaceAll("@", "")
+      .replaceAll(/<[^>]*>/g, "")
+      .replaceAll(/&lt;/g, "<")
+      .replaceAll(/&gt;/g, ">")
+    if (event.name === myGameName) return
+    if (event.channel === 2) {
+      await sendMsg(newmessage, config.channel)
+    }
   })
+
   mod.hook("S_CHAT", 3, async (event) => {
     let brut = event.message
     let newmessage = event.message
@@ -110,8 +120,13 @@ module.exports = function DiscordChat(mod) {
   let discordAuthor
   bot.on("message", function chatMessage(msg) {
     if (!msg.author.bot && msg.channel.id === config.channel) {
-      discordAuthor = msg.author.username
-      console.log(`[${discordAuthor}]: ${msg.content}`)
+      //discordAuthor = msg.author.username
+      msg.guild.members.fetch(msg.author).then((member) => {
+        discordAuthor = member.nickname
+      })
+      if (config.back) {
+        console.log(`[${discordAuthor}]: ${msg.content}`)
+      }
     }
   })
 
@@ -157,7 +172,7 @@ module.exports = function DiscordChat(mod) {
   //  }
   //});
 
-  mod.command.add("disc", (arg, arg1) => {
+  command.add("disc", (arg, arg1) => {
     switch (arg) {
       case "test":
         sendMsg(arg1, config.channel)
@@ -177,9 +192,14 @@ module.exports = function DiscordChat(mod) {
     }
   })
 
+  let myGameName
+  mod.hook("S_LOGIN", 14, (event) => {
+    myGameName = event.name
+  })
+
   function sendMsg(msg, chatChannel) {
-    var channel = bot.channels.get(chatChannel)
-    channel.send(`[${myGameName}] : ${msg}`)
+    var channel = bot.channels.cache.get(chatChannel)
+    channel.send(`Guild [${myGameName}] : ${msg}`)
     // <@!231813966282752001> New ping
   }
 
